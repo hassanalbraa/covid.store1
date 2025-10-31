@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COVID STORE — متجر شحن الألعاب</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+body {margin:0;font-family:'Poppins',sans-serif;color:#e8eefc;background:linear-gradient(120deg,#0b0f1a,#07122a 60%);height:100vh;display:flex;justify-content:center;align-items:center;overflow:hidden;}
+.container {width:90%;max-width:600px;text-align:center;background:rgba(255,255,255,0.02);padding:24px;border-radius:16px;backdrop-filter:blur(6px);}
+h1,h2 {margin:12px 0;}
+h1 {font-size:2.5rem;background:linear-gradient(90deg,#6e4bff,#00b0ff);-webkit-background-clip:text;color:transparent;}
+h2,h3 {font-size:1.6rem;}
+.step {display:none;flex-direction:column;gap:16px;animation:fadeIn .5s ease-in-out;}
+.step.active {display:flex;}
+.grid {display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.card {padding:16px;border-radius:12px;background:rgba(255,255,255,0.03);cursor:pointer;transition:all .2s;border:1px solid rgba(255,255,255,0.02);}
+.card:hover {transform:translateY(-6px);box-shadow:0 12px 28px rgba(0,0,0,0.5);}
+.btn {padding:12px 28px;background:linear-gradient(90deg,#6e4bff,#00b0ff);color:white;border:none;border-radius:12px;font-size:1rem;cursor:pointer;transition:transform .2s;display:inline-block;}
+.btn:hover {transform:scale(1.08);}
+.review-box {background:rgba(255,255,255,0.03);padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);text-align:right;}
+#paymentInfoContainer {display:none; flex-direction:column; gap:12px; margin-top:12px; text-align:right; font-size:1.1rem;}
+@keyframes fadeIn{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Step 1: Welcome -->
+  <div class="step active" id="step1">
+    <h1>COVID STORE</h1>
+    <p>أهلا بك في متجر شحن الألعاب</p>
+    <button class="btn" onclick="nextStep()">ابدأ الآن</button>
+  </div>
+
+  <!-- Step 2: Choose Game + Offers -->
+  <div class="step" id="step2">
+    <h2>اختر لعبتك</h2>
+    <div class="grid">
+      <div class="card" onclick="selectGame('PUBG')">PUBG</div>
+      <div class="card" onclick="selectGame('Free Fire')">Free Fire</div>
+    </div>
+    <div id="offersContainer" style="margin-top:16px; display:none; flex-direction:column; gap:12px;">
+      <h3>اختر عرض الشحن</h3>
+      <div id="offersList"></div>
+    </div>
+    <button class="btn" onclick="nextStep()">التالي</button>
+  </div>
+
+  <!-- Step 3: Payment Method -->
+  <div class="step" id="step3">
+    <h2>اختر طريقة الدفع</h2>
+    <div class="grid">
+      <div class="card" onclick="selectPayment('بنكك')">بنكك</div>
+      <div class="card" onclick="selectPayment('ماي كاشي')">ماي كاشي</div>
+    </div>
+    <div id="paymentInfoContainer"></div>
+    <button class="btn" onclick="nextStep()">التالي</button>
+  </div>
+
+  <!-- Step 4: Review -->
+  <div class="step" id="step4">
+    <h2>راجع معلوماتك قبل الإرسال</h2>
+    <div class="review-box">
+      <p><strong>اللعبة المختارة:</strong> <span id="showGame"></span></p>
+      <p><strong>العرض:</strong> <span id="showOffer"></span></p>
+      <p><strong>طريقة الدفع:</strong> <span id="showPayment"></span></p>
+      <p><strong>معلومات الحساب:</strong> <span id="showAccount"></span></p>
+    </div>
+    <button class="btn" onclick="sendWhatsApp()">تأكيد وإرسال</button>
+  </div>
+</div>
+
+<script>
+let currentStep = 1;
+let selectedGame = '';
+let selectedOffer = {};
+let selectedPayment = '';
+let paymentAccounts = {
+  "بنكك":"رقم الحساب: 00000\nاسم الحساب: محمد احمد",
+  "ماي كاشي":"رقم الحساب: 000000\nاسم الحساب: محمد احمد"
+};
+let offersData = {
+  "PUBG":[{amount:60, price:3000, currency:'شدة'},{amount:125, price:6000, currency:'شدة'},{amount:300, price:14000, currency:'شدة'}],
+  "Free Fire":[{amount:100, price:3400, currency:'💎'},{amount:210, price:6800, currency:'💎'},{amount:530, price:17000, currency:'💎'},{amount:1080, price:34000, currency:'💎'},{amount:2200, price:68000, currency:'💎'}]
+};
+
+function nextStep(){
+  if(currentStep < 4){
+    currentStep++;
+    showStep(currentStep);
+    if(currentStep===4){
+      document.getElementById('showGame').textContent = selectedGame;
+      document.getElementById('showOffer').textContent = selectedOffer.amount + ' ' + selectedOffer.currency + ' — ' + selectedOffer.price + ' ج.س';
+      document.getElementById('showPayment').textContent = selectedPayment;
+      document.getElementById('showAccount').textContent = paymentAccounts[selectedPayment];
+    }
+  }
+}
+
+function showStep(step){
+  for(let i=1;i<=4;i++){
+    document.getElementById('step'+i).classList.remove('active');
+  }
+  document.getElementById('step'+step).classList.add('active');
+}
+
+function selectGame(game){
+  selectedGame = game;
+  const container = document.getElementById('offersContainer');
+  const list = document.getElementById('offersList');
+  list.innerHTML = '';
+  offersData[game].forEach((offer)=>{
+    const div = document.createElement('div');
+    div.className='card';
+    div.textContent = `${offer.amount} ${offer.currency} — ${offer.price} ج.س`;
+    div.onclick = ()=>{
+      selectedOffer = offer;
+      document.querySelectorAll('#offersList .card').forEach(c=>c.style.border='1px solid rgba(255,255,255,0.02)');
+      div.style.border='2px solid #00b0ff';
+    };
+    list.appendChild(div);
+  });
+  container.style.display='flex';
+}
+
+function selectPayment(payment){
+  selectedPayment = payment;
+  const container = document.getElementById('paymentInfoContainer');
+  container.textContent = paymentAccounts[payment];
+  container.style.display='block';
+}
+
+function sendWhatsApp(){
+  let game = selectedGame;
+  let accountInfo = paymentAccounts[selectedPayment];
+  let message = `اللعبة: ${game}%0Aالعرض: ${selectedOffer.amount} ${selectedOffer.currency} — ${selectedOffer.price} ج.س%0Aطريقة الدفع: ${selectedPayment}%0Aمعلومات الحساب: ${accountInfo}`;
+  let phone = '249916103363';
+  let whatsappURL = `https://wa.me/${phone}?text=${message}`;
+  window.open(whatsappURL, '_blank');
+}
+</script>
+</body>
+</html>
