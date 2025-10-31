@@ -18,23 +18,18 @@ h2,h3 {font-size:1.6rem;}
 .card:hover {transform:translateY(-6px);box-shadow:0 12px 28px rgba(0,0,0,0.5);}
 .btn {padding:12px 28px;background:linear-gradient(90deg,#6e4bff,#00b0ff);color:white;border:none;border-radius:12px;font-size:1rem;cursor:pointer;transition:transform .2s;display:inline-block;}
 .btn:hover {transform:scale(1.08);}
-.review-box {background:rgba(255,255,255,0.03);padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);text-align:right;}
 #paymentInfoContainer {display:none; flex-direction:column; gap:12px; margin-top:12px; text-align:right; font-size:1.1rem;}
+.review-box {background:rgba(255,255,255,0.03);padding:16px;border-radius:12px;border:1px solid rgba(255,255,255,0.02);text-align:right;}
 @keyframes fadeIn{0%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 <div class="container">
-  <!-- Step 1: Welcome -->
+
+  <!-- Step 1: Choose Game + Offers -->
   <div class="step active" id="step1">
     <h1>COVID STORE</h1>
-    <p>أهلا بك في متجر شحن الألعاب</p>
-    <button class="btn" onclick="nextStep()">ابدأ الآن</button>
-  </div>
-
-  <!-- Step 2: Choose Game + Offers -->
-  <div class="step" id="step2">
-    <h2>اختر لعبتك</h2>
+    <p>اختر لعبتك</p>
     <div class="grid">
       <div class="card" onclick="selectGame('PUBG')">PUBG</div>
       <div class="card" onclick="selectGame('Free Fire')">Free Fire</div>
@@ -46,28 +41,30 @@ h2,h3 {font-size:1.6rem;}
     <button class="btn" onclick="nextStep()">التالي</button>
   </div>
 
-  <!-- Step 3: Payment Method -->
-  <div class="step" id="step3">
+  <!-- Step 2: Payment Method -->
+  <div class="step" id="step2">
     <h2>اختر طريقة الدفع</h2>
     <div class="grid">
       <div class="card" onclick="selectPayment('بنكك')">بنكك</div>
       <div class="card" onclick="selectPayment('ماي كاشي')">ماي كاشي</div>
+      <div class="card" onclick="selectPayment('فودافون')">فودافون</div>
     </div>
     <div id="paymentInfoContainer"></div>
     <button class="btn" onclick="nextStep()">التالي</button>
   </div>
 
-  <!-- Step 4: Review -->
-  <div class="step" id="step4">
+  <!-- Step 3: Review -->
+  <div class="step" id="step3">
     <h2>راجع معلوماتك قبل الإرسال</h2>
     <div class="review-box">
-      <p><strong>اللعبة المختارة:</strong> <span id="showGame"></span></p>
-      <p><strong>العرض:</strong> <span id="showOffer"></span></p>
-      <p><strong>طريقة الدفع:</strong> <span id="showPayment"></span></p>
-      <p><strong>معلومات الحساب:</strong> <span id="showAccount"></span></p>
+      <p id="showGame"></p>
+      <p id="showOffer"></p>
+      <p id="showPayment"></p>
+      <p id="showAccount"></p>
     </div>
     <button class="btn" onclick="sendWhatsApp()">تأكيد وإرسال</button>
   </div>
+
 </div>
 
 <script>
@@ -75,30 +72,43 @@ let currentStep = 1;
 let selectedGame = '';
 let selectedOffer = {};
 let selectedPayment = '';
-let paymentAccounts = {
-  "بنكك":"رقم الحساب: 00000\nاسم الحساب: محمد احمد",
-  "ماي كاشي":"رقم الحساب: 000000\nاسم الحساب: محمد احمد"
+
+let paymentTexts = {
+  "بنكك": {account:"رقم الحساب: 000000"},
+  "ماي كاشي": {account:"رقم الحساب: 617052"},
+  "فودافون": {account:"رقم الحساب: 0123456789"}
 };
+
 let offersData = {
-  "PUBG":[{amount:60, price:3000, currency:'شدة'},{amount:125, price:6000, currency:'شدة'},{amount:300, price:14000, currency:'شدة'}],
-  "Free Fire":[{amount:100, price:3400, currency:'💎'},{amount:210, price:6800, currency:'💎'},{amount:530, price:17000, currency:'💎'},{amount:1080, price:34000, currency:'💎'},{amount:2200, price:68000, currency:'💎'}]
+  "PUBG": [
+    {amount:60, priceEGP:55, priceSDG:3000, currency:'شدة'},
+    {amount:125, priceEGP:115, priceSDG:6000, currency:'شدة'},
+    {amount:300, priceEGP:280, priceSDG:14000, currency:'شدة'}
+  ],
+  "Free Fire":[
+    {amount:100, priceEGP:55, priceSDG:3400, currency:'💎'},
+    {amount:210, priceEGP:110, priceSDG:6800, currency:'💎'},
+    {amount:530, priceEGP:270, priceSDG:17000, currency:'💎'},
+    {amount:1080, priceEGP:550, priceSDG:34000, currency:'💎'},
+    {amount:2200, priceEGP:1100, priceSDG:68000, currency:'💎'}
+  ]
 };
 
 function nextStep(){
-  if(currentStep < 4){
+  if(currentStep < 3){
     currentStep++;
     showStep(currentStep);
-    if(currentStep===4){
-      document.getElementById('showGame').textContent = selectedGame;
-      document.getElementById('showOffer').textContent = selectedOffer.amount + ' ' + selectedOffer.currency + ' — ' + selectedOffer.price + ' ج.س';
-      document.getElementById('showPayment').textContent = selectedPayment;
-      document.getElementById('showAccount').textContent = paymentAccounts[selectedPayment];
+    if(currentStep===3){
+      document.getElementById('showGame').textContent = `اللعبة المختارة: ${selectedGame}`;
+      document.getElementById('showOffer').textContent = `العرض: ${selectedOffer.amount} ${selectedOffer.currency} — ${selectedPayment==='فودافون'?selectedOffer.priceEGP:selectedOffer.priceSDG} ${selectedPayment==='فودافون'?'ج.م':'ج.س'}`;
+      document.getElementById('showPayment').textContent = `طريقة الدفع: ${selectedPayment}`;
+      document.getElementById('showAccount').textContent = paymentTexts[selectedPayment].account;
     }
   }
 }
 
 function showStep(step){
-  for(let i=1;i<=4;i++){
+  for(let i=1;i<=3;i++){
     document.getElementById('step'+i).classList.remove('active');
   }
   document.getElementById('step'+step).classList.add('active');
@@ -112,7 +122,7 @@ function selectGame(game){
   offersData[game].forEach((offer)=>{
     const div = document.createElement('div');
     div.className='card';
-    div.textContent = `${offer.amount} ${offer.currency} — ${offer.price} ج.س`;
+    div.textContent = `${offer.amount} ${offer.currency} — ${offer.priceEGP} ج.م / ${offer.priceSDG} ج.س`;
     div.onclick = ()=>{
       selectedOffer = offer;
       document.querySelectorAll('#offersList .card').forEach(c=>c.style.border='1px solid rgba(255,255,255,0.02)');
@@ -126,17 +136,20 @@ function selectGame(game){
 function selectPayment(payment){
   selectedPayment = payment;
   const container = document.getElementById('paymentInfoContainer');
-  container.textContent = paymentAccounts[payment];
+  container.textContent = `طريقة الدفع: ${payment}\n${paymentTexts[payment].account}`;
   container.style.display='block';
 }
 
 function sendWhatsApp(){
-  let game = selectedGame;
-  let accountInfo = paymentAccounts[selectedPayment];
-  let message = `اللعبة: ${game}%0Aالعرض: ${selectedOffer.amount} ${selectedOffer.currency} — ${selectedOffer.price} ج.س%0Aطريقة الدفع: ${selectedPayment}%0Aمعلومات الحساب: ${accountInfo}`;
-  let phone = '249916103363';
+  let amount = selectedOffer.amount;
+  let currency = selectedOffer.currency;
+  let price = selectedPayment==='فودافون'?selectedOffer.priceEGP:selectedOffer.priceSDG;
+
+  let message = `اللعبة: ${selectedGame}%0Aالعرض: ${amount} ${currency} — ${price} ${selectedPayment==='فودافون'?'ج.م':'ج.س'}%0Aطريقة الدفع: ${selectedPayment}%0A${paymentTexts[selectedPayment].account}`;
+  
+  let phone = '+249916103363';
   let whatsappURL = `https://wa.me/${phone}?text=${message}`;
-  window.open(whatsappURL, '_blank');
+  window.open(whatsappURL,'_blank');
 }
 </script>
 </body>
